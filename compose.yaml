@@ -1,0 +1,99 @@
+services:
+    router:
+        build: .
+        image: custom-host
+        pull_policy: never
+        entrypoint: /init.sh
+        container_name: router
+        hostname: router
+        cap_add:
+            - NET_ADMIN
+        networks:
+            # eth0
+            network1-isp:
+                ipv4_address: 10.0.0.154
+            # eth1
+            network2-local:
+                ipv4_address: 172.16.0.2
+            # eth2
+            network3-local:
+                ipv4_address: 192.168.0.2
+        # ports:
+        #     - 8888:8888
+        volumes:
+            - ./init/router.sh:/init.sh
+        # healthcheck:
+        #     test: /router_test.sh
+
+    local-client1:
+        build: .
+        image: custom-host
+        pull_policy: never
+        entrypoint: /init.sh
+        container_name: client-1
+        hostname: client-1
+        cap_add:
+            - NET_ADMIN
+        networks:
+            network2-local:
+                ipv4_address: 172.16.0.101
+        volumes:
+            - ./init/client1.sh:/init.sh
+
+    local-client2:
+        build: .
+        image: custom-host
+        pull_policy: never
+        entrypoint: /init.sh
+        container_name: client-2
+        hostname: client-2
+        cap_add:
+            - NET_ADMIN
+        networks:
+            network2-local:
+                ipv4_address: 172.16.0.102
+        volumes:
+            - ./init/client2.sh:/init.sh
+
+    local-client3:
+        build: .
+        image: custom-host
+        pull_policy: never
+        entrypoint: /init.sh
+        container_name: client-3
+        hostname: client-3
+        cap_add:
+            - NET_ADMIN
+        networks:
+            network3-local:
+                ipv4_address: 192.168.0.103
+        volumes:
+            - ./init/client3.sh:/init.sh
+
+networks:
+    # Docker allowed assign networks to the interfaces in alphabetical order only!
+    # See:
+    #   https://stackoverflow.com/questions/42926294/
+    #   https://github.com/docker/compose/issues/8561/
+    network1-isp:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 10.0.0.152/29
+                  gateway: 10.0.0.153
+
+    network2-local:
+        driver: bridge
+        internal: true
+        ipam:
+            config:
+                - subnet: 172.16.0.0/24
+                  gateway: 172.16.0.1
+
+    network3-local:
+        driver: bridge
+        internal: true
+        ipam:
+            config:
+                - subnet: 192.168.0.0/24
+                  gateway: 192.168.0.1
